@@ -50,6 +50,10 @@
 
 @property (nonatomic, strong) NSArray *panels;
 @property (nonatomic, strong) NSMutableArray *panelViews;
+
+@property (nonatomic, strong) UIImage *headerImage;
+@property (nonatomic, strong) NSString *headerText;
+
 @property (nonatomic, assign) NSInteger lastPanelIndex;
 
 @end
@@ -58,62 +62,54 @@
 
 - (id)initWithFrame:(CGRect)frame panels:(NSArray *)panels
 {
-    self = [super initWithFrame:frame];
-    if (self) {
-        [self setDefaultBooleans];
-        // Initialization code
-        [self sharedInitialize:panels forFrame:frame];
-        
-        [self.headerView setFrame:CGRectZero];
-        [[self.headerView subviews]makeObjectsPerformSelector:@selector(removeFromSuperview)];
-        [self.headerView removeFromSuperview];
-        self.headerView = nil;
-    }
-    return self;
+    return [self initWithFrame:frame headerImage:nil headerText:nil panels:panels];
 }
 
 - (id)initWithFrame:(CGRect)frame headerText:(NSString *)headerText panels:(NSArray *)panels
 {
-    self = [super initWithFrame:frame];
-    if (self) {
-        // Initialization code
-        [self setDefaultBooleans];
-        [self sharedInitialize:panels forFrame:frame];
-        [self setHeaderText:headerText];
-    }
-    return self;
+    return [self initWithFrame:frame headerImage:nil headerText:headerText panels:panels];
 }
 
 - (id)initWithFrame:(CGRect)frame headerImage:(UIImage *)headerImage panels:(NSArray *)panels
 {
+    return [self initWithFrame:frame headerImage:headerImage headerText:nil panels:panels];
+}
+
+- (id)initWithFrame:(CGRect)frame headerImage:(UIImage *)headerImage headerText:(NSString *)headerText panels:(NSArray *)panels
+{
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
-        [self setDefaultBooleans];
+        _headerImage = headerImage;
+        _headerText = headerText;
         [self sharedInitialize:panels forFrame:frame];
-        [self setHeaderImage:headerImage];
     }
+    
     return self;
 }
 
-- (void)setDefaultBooleans
+
+- (void)sharedInitialize:(NSArray*)panels forFrame:(CGRect)frame
 {
     _skipAvailable = TRUE;
     _swipeToEndAvailable = TRUE;
     _notifyCompletionBeforeFadeout = TRUE;
     _animateContentAlpha = TRUE;
     _imagesWantFullscreen = FALSE;
-}
-
-- (void)sharedInitialize:(NSArray*)panels forFrame:(CGRect)frame
-{
-    _panelViews = [[NSMutableArray alloc] init];
-    _panels = panels;
+    
+    _panelViews = [@[] mutableCopy];
+    _panels = [panels copy];
     
     [self buildUIWithFrame:frame];
 }
 
+- (void)willMoveToSuperview:(UIView *)newSuperview
+{
+    //[self buildUIWithFrame:self.frame];
+}
+
 #pragma mark - UI Builder Methods
+
 
 - (void)buildUIWithFrame:(CGRect)frame
 {
@@ -143,25 +139,30 @@
     self.headerView.backgroundColor = [UIColor clearColor];
     
     //Setup HeaderImageView
-    self.headerImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0,
-                                                                         self.headerView.frame.size.width,
-                                                                         self.headerView.frame.size.height)];
+    if (self.headerImage) {
+        self.headerImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0,
+                                                                             self.headerView.frame.size.width,
+                                                                             self.headerView.frame.size.height)];
+        
+        self.headerImageView.backgroundColor = [UIColor clearColor];
+        self.headerImageView.contentMode = UIViewContentModeScaleAspectFit;
+        self.headerImageView.image = self.headerImage;
+        [self.headerView addSubview:self.headerImageView];
+
+    } else if (self.headerText) {
+        
+        //Setup HeaderLabel
+        self.headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0,
+                                                                     self.headerView.frame.size.width,
+                                                                     self.headerView.frame.size.height)];
+        self.headerLabel.font = HEADER_FONT;
+        self.headerLabel.textColor = HEADER_TEXT_COLOR;
+        self.headerLabel.backgroundColor = [UIColor clearColor];
+        self.headerLabel.textAlignment = NSTextAlignmentCenter;
+        self.headerLabel.text = self.headerText;
+        [self.headerView addSubview:self.headerLabel];
+    }
     
-    self.headerImageView.backgroundColor = [UIColor clearColor];
-    self.headerImageView.contentMode = UIViewContentModeScaleAspectFit;
-    [self.headerView addSubview:self.headerImageView];
-    self.headerImageView.hidden = YES;
-    
-    //Setup HeaderLabel
-    self.headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0,
-                                                                 self.headerView.frame.size.width,
-                                                                 self.headerView.frame.size.height)];
-    self.headerLabel.font = HEADER_FONT;
-    self.headerLabel.textColor = HEADER_TEXT_COLOR;
-    self.headerLabel.backgroundColor = [UIColor clearColor];
-    self.headerLabel.textAlignment = NSTextAlignmentCenter;
-    [self.headerView addSubview:self.headerLabel];
-    self.headerLabel.hidden = YES;
     [self addSubview:self.headerView];
 }
 
@@ -185,11 +186,6 @@
                 
                 //Create a new view for the panel and add it to the array
                 [self.panelViews addObject:[self panelViewForPanel:self.panels[ii] atXIndex:&contentXIndex]];
-                
-                //Make only the first panel visible
-                if (ii != 0) {
-                    
-                }
                 
                 //Add the newly created panel view to ContentScrollView
                 [self.contentScrollView addSubview:self.panelViews[ii]];
@@ -407,16 +403,16 @@
 
 - (void)setHeaderText:(NSString *)headerText
 {
-    self.headerLabel.hidden = NO;
-    self.headerImageView.hidden = YES;
-    self.headerLabel.text = headerText;
+    _headerLabel.hidden = NO;
+    _headerImageView.hidden = YES;
+    _headerLabel.text = headerText;
 }
 
 - (void)setHeaderImage:(UIImage *)headerImage
 {
-    self.headerLabel.hidden = YES;
-    self.headerImageView.hidden = NO;
-    self.headerImageView.image = headerImage;
+    _headerLabel.hidden = YES;
+    _headerImageView.hidden = NO;
+    _headerImageView.image = headerImage;
 }
 
 #pragma mark - Show/Hide
@@ -663,21 +659,17 @@
     } else if (self.completion){
         self.completion(type);
     }
-    
-    if (self.completion) {
-        self.completion = nil;
-        self.panelChange = nil;
-    }
+
+    self.completion = nil;
+    self.panelChange = nil;
 }
 
 - (void)cleanupViewAndEndWithOutCallbacks
 {
     [self cleanVariables];
     
-    if (self.completion) {
-        self.completion = nil;
-        self.panelChange = nil;
-    }
+    self.completion = nil;
+    self.panelChange = nil;
 
     [self cleanPanelViews];
     [self cleanPanelData];

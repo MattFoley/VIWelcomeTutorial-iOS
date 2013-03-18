@@ -129,8 +129,6 @@ typedef void(^PanelChangeBlock)(VIIntroductionPanel* panel, NSInteger index);
 //         as well as nil any other references.
 - (void)showInView:(UIView *)view withCompletion:(CompletionBlock)completion andPanelChange:(PanelChangeBlock)panelChange;
 - (void)showInView:(UIView *)view withCompletion:(CompletionBlock)completion;
-
-//**NOTE** Use delegate Protocol, or you'll end up leaking memory.
 - (void)showInView:(UIView *)view;
 
 //To Remove the view on your own, use this call. Your delegate methods will still be called.

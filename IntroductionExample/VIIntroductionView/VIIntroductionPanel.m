@@ -36,7 +36,7 @@
         [self sharedInit];
         
         _image = image;
-        _descriptionText = [[NSString alloc] initWithString:description];
+        _descriptionText = [description copy];
         _font = font;
         _textCenter = textCenter;
     }
@@ -46,44 +46,26 @@
 
 - (id)initWithImage:(UIImage *)image description:(NSString *)description andTextCenter:(CGPoint)textCenter
 {
-    if (self = [super init]) {
-        [self sharedInit];
-        
-        _image = image;
-        _descriptionText = [[NSString alloc] initWithString:description];
-        _textCenter = textCenter;
-    }
-    
-    return self;
+    return [self initWithImage:image description:description textCenter:textCenter andFont:nil];
 }
 
 - (id)initWithImage:(UIImage *)image description:(NSString *)description
 {
-    if (self = [super init]) {
-        _image = image;
-        _descriptionText = [[NSString alloc] initWithString:description];
-        [self sharedInit];
-    }
-    
-    return self;
+    return [self initWithImage:image description:description andTextCenter:CGPointZero];
 }
 
 - (id)initWithImage:(UIImage *)image
 {
-    if (self = [super init]) {
-        _image = image;
-        [self sharedInit];
-    }
-    
-    return self;
+    return [self initWithImage:image description:nil];
 }
 
 - (void)sharedInit
 {
     _textCenter = CGPointZero;
-    self.textColor = nil;
-    self.textAlignment = NSTextAlignmentCenter;
-    self.font = nil;
+    _textAlignment = NSTextAlignmentCenter;
+    
+    _textColor = nil;
+    _font = nil;
     
 }
 
