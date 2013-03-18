@@ -91,26 +91,26 @@ Customization
 VIIntroductionView.h lists out the following properties for customization:
 -----------------------
 
--skipAvailable: This variable defaults to TRUE and dictates whether endIntroButton is visible before the final panel. Turning it off will cause endIntroButton to fade in as you swipe into the final panel.
+- skipAvailable: This variable defaults to TRUE and dictates whether endIntroButton is visible before the final panel. Turning it off will cause endIntroButton to fade in as you swipe into the final panel.
 
--swipeToEndAvailable: This variable defaults to TRUE and dictates whether or not a user can exit the tutorial by swiping past the final panel. If FALSE, a user must tap the endIntroButton to remove the tutorial.
+- swipeToEndAvailable: This variable defaults to TRUE and dictates whether or not a user can exit the tutorial by swiping past the final panel. If FALSE, a user must tap the endIntroButton to remove the tutorial.
 
--imagesWantFullscreen: This variable defaults to FALSE. If you plan on showing full screen images, you must set this variable to TRUE. When set to TRUE your PageControl and Exit Button will be pinned to the bottom of the view. The descriptionText label for panels will no longer be dynamically positioned and will obey each VIIntroductionPanel's textCenter property.
+- imagesWantFullscreen: This variable defaults to FALSE. If you plan on showing full screen images, you must set this variable to TRUE. When set to TRUE your PageControl and Exit Button will be pinned to the bottom of the view. The descriptionText label for panels will no longer be dynamically positioned and will obey each VIIntroductionPanel's textCenter property.
 
--notifyCompletionBeforeFadeout: This variable defaults to TRUE, this way your delegate completion callback or block will be called before the Introduction view begins fading, so that you may prepare for it to be removed by constructing your next view. If your next view is already constructed, set this to FALSE and your callback/block will be called on the fade of the view. (If set to FALSE, you must remove the Introduction view from your view hierarchy yourself)
+- notifyCompletionBeforeFadeout: This variable defaults to TRUE, this way your delegate completion callback or block will be called before the Introduction view begins fading, so that you may prepare for it to be removed by constructing your next view. If your next view is already constructed, set this to FALSE and your callback/block will be called on the fade of the view. (If set to FALSE, you must remove the Introduction view from your view hierarchy yourself)
 
--animateContentAlpha: This variable defaults to TRUE, which dictates that each panel's content will be faded in when a panel has settled. Setting this to FALSE will keep each panel's content visible for the entire tutorial.
+- animateContentAlpha: This variable defaults to TRUE, which dictates that each panel's content will be faded in when a panel has settled. Setting this to FALSE will keep each panel's content visible for the entire tutorial.
 
 VIIntroductionPanel.h lists out the following properties for customization:
 -----------------------
 
--font: If this is set, the panel's label will be set to this font. Otherwise, the font will default to the value set at #define DESCRIPTION_FONT in VIIntroductionView.h.
+- font: If this is set, the panel's label will be set to this font. Otherwise, the font will default to the value set at #define DESCRIPTION_FONT in VIIntroductionView.h.
 
--textColor: If this is set, the panel's label will be set to this text color. Otherwise, the font will default to the value set at #define DESCRIPTION_TEXT_COLOR in VIIntroductionView.h.
+- textColor: If this is set, the panel's label will be set to this text color. Otherwise, the font will default to the value set at #define DESCRIPTION_TEXT_COLOR in VIIntroductionView.h.
 
--textAlignment: If this is set, the panel's label will be set to this alignment. Otherwise, it will default to NSTextAlignmentCenter.
+- textAlignment: If this is set, the panel's label will be set to this alignment. Otherwise, it will default to NSTextAlignmentCenter.
 
--textCenter: If this is set, the panel's label will be centered to this position. Otherwise, it will be positioned dynamically underneath the Image set for the panel.
+- textCenter: If this is set, the panel's label will be centered to this position. Otherwise, it will be positioned dynamically underneath the Image set for the panel.
 
 
 
