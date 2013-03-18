@@ -53,14 +53,14 @@ Don't forget to set the delegate to the calling class if you are using delegatio
     introductionView.delegate = self;
 
     - (void)introduction:(VIIntroductionView*)introductionView didFinishWithType:(FinishType)finishType{
- if (finishType == FinishTypeSkipButton) {
-            NSLog(@"Did Finish Introduction By Skipping It");
-        } else if (finishType == FinishTypeSwipeOut){
-            NSLog(@"Did Finish Introduction By Swiping Out");
-        }
+            if (finishType == FinishTypeSkipButton) {
+                 NSLog(@"Did Finish Introduction By Skipping It");
+            } else if (finishType == FinishTypeSwipeOut){
+                NSLog(@"Did Finish Introduction By Swiping Out");
+            }
         
-        [introductionView removeFromSuperview];
-}
+            [introductionView removeFromSuperview];
+    }
 
 
 Starting the Introduction
