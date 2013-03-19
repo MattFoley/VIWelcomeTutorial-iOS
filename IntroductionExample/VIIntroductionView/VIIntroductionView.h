@@ -27,7 +27,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "VIIntroductionPanel.h"
 #import <QuartzCore/QuartzCore.h>
 
 typedef enum {
@@ -35,16 +34,30 @@ typedef enum {
     FinishTypeSkipButton
 } FinishType;
 
+FOUNDATION_EXPORT NSInteger const HEADER_VIEW_HEIGHT;
+FOUNDATION_EXPORT NSInteger const PAGE_CONTROL_PADDING;
+FOUNDATION_EXPORT NSString *const SKIP_INTRO_BUTTON_TEXT;
+
+FOUNDATION_EXPORT UIColor * DEFAULT_BACKGROUND_COLOR;
+FOUNDATION_EXPORT UIColor * DESCRIPTION_TEXT_COLOR;
+FOUNDATION_EXPORT UIColor * HEADER_TEXT_COLOR;
+
+FOUNDATION_EXPORT UIFont * DESCRIPTION_FONT;
+FOUNDATION_EXPORT UIFont * HEADER_FONT;
+
+@class VIIntroductionPanel;
+@class VIIntroductionView;
+
 typedef void(^CompletionBlock)(FinishType finishType);
 typedef void(^PanelChangeBlock)(VIIntroductionPanel* panel, NSInteger index);
 
-@class VIIntroductionView;
 @protocol VIIntroductionDelegate
 
 @optional
 - (void)introduction:(VIIntroductionView*)introductionView didFinishWithType:(FinishType)finishType;
 - (void)introductionDidChangeToPanel:(VIIntroductionPanel *)panel withIndex:(NSInteger)panelIndex;
 @end
+
 
 
 /******************************/
@@ -65,18 +78,12 @@ typedef void(^PanelChangeBlock)(VIIntroductionPanel* panel, NSInteger index);
 //Intoduction Properties
 @property (nonatomic, strong) UIImageView *backgroundImageView;
 
-//Header properties
-@property (nonatomic, strong) UILabel *headerLabel;
-@property (nonatomic, strong) UIImageView *headerImageView;
-@property (nonatomic, strong) UIView *headerView;
-
 //Content properties
-@property (nonatomic, strong) UIScrollView *contentScrollView;
+@property (nonatomic, weak) IBOutlet UIScrollView *contentScrollView;
 
 //PageControl/Skip Button
-@property (nonatomic, strong) UIPageControl *pageControl;
-@property (nonatomic, strong) UIButton *endIntroButton;
-
+@property (nonatomic, weak) IBOutlet UIPageControl *pageControl;
+@property (nonatomic, weak) IBOutlet UIButton *endIntroButton;
 
 //Customization Settings
 
@@ -88,16 +95,11 @@ typedef void(^PanelChangeBlock)(VIIntroductionPanel* panel, NSInteger index);
 //Defaults to TRUE
 @property (nonatomic, assign) BOOL swipeToEndAvailable;
 
-//Setting this to TRUE will force images to take up the full screen of the panel
-//If you set this to TRUE, the UIPageControl and endIntroButton will not be moved or resized, and will be pinned to the bottom of the screen, or where ever you choose to set them after initialization.
-//If a description is set for panels, it will obey textCenter property set on each panel.
-//Defaults to FALSE
-@property (nonatomic, assign) BOOL imagesWantFullscreen;
-
 //Setting this to FALSE will force the fadeout to complete before completion is called.
 //Defaults to TRUE so that your view can prepare for Fadeout on Skip.
 @property (nonatomic, assign) BOOL notifyCompletionBeforeFadeout;
 
+@property (nonatomic, assign) BOOL scrollWantsFullscreen;
 
 //Setting this to FALSE will cause content to be constantly shown, rather than alpha'd in on page settle. 
 //Defaults to TRUE

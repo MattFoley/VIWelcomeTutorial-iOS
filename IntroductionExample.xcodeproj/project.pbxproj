@@ -144,9 +144,9 @@
 		F02BB24216E90F6A00E3D502 /* VIIntroductionView */ = {
 			isa = PBXGroup;
 			children = (
-				F02BB23A16E8481900E3D502 /* VIIntroductionView.xib */,
 				F02BB23716E847D600E3D502 /* VIIntroductionView.h */,
 				F02BB23816E847D600E3D502 /* VIIntroductionView.m */,
+				F02BB23A16E8481900E3D502 /* VIIntroductionView.xib */,
 				F02BB23F16E8576100E3D502 /* VIIntroductionPanel.h */,
 				F02BB24016E8576100E3D502 /* VIIntroductionPanel.m */,
 			);
@@ -320,6 +320,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "IntroductionExample/IntroductionExample-Prefix.pch";
 				INFOPLIST_FILE = "IntroductionExample/IntroductionExample-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
@@ -332,6 +333,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "IntroductionExample/IntroductionExample-Prefix.pch";
 				INFOPLIST_FILE = "IntroductionExample/IntroductionExample-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;

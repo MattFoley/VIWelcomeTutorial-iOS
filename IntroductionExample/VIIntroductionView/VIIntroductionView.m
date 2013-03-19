@@ -27,21 +27,20 @@
 //
 
 #import "VIIntroductionView.h"
+#import "VIIntroductionPanel.h"
 
 #define IS_RETINA() [[UIScreen mainScreen] respondsToSelector:@selector(scale)] && [[UIScreen mainScreen] scale] == 2.0f
 
-#define DEFAULT_BACKGROUND_COLOR    [UIColor colorWithWhite:0 alpha:0.9]
+NSInteger const HEADER_VIEW_HEIGHT      = 50;
+NSInteger const PAGE_CONTROL_PADDING    =  2;
+NSString *const SKIP_INTRO_BUTTON_TEXT  = @"End";
 
-#define HEADER_VIEW_HEIGHT          50
-#define PAGE_CONTROL_PADDING        2
+UIColor * DEFAULT_BACKGROUND_COLOR      = nil;
+UIColor * DESCRIPTION_TEXT_COLOR        = nil;
+UIColor * HEADER_TEXT_COLOR             = nil;
 
-#define SKIP_INTRO_BUTTON_TEXT      @"End"
-
-#define HEADER_FONT                 [UIFont fontWithName:@"HelveticaNeue-Light" size:25.0]
-#define HEADER_TEXT_COLOR           [UIColor whiteColor]
-
-#define DESCRIPTION_FONT            [UIFont fontWithName:@"HelveticaNeue-Light" size:14.0]
-#define DESCRIPTION_TEXT_COLOR      [UIColor whiteColor]
+UIFont * DESCRIPTION_FONT               = nil;
+UIFont * HEADER_FONT                    = nil;
 
 @interface VIIntroductionView ()
 
@@ -55,6 +54,13 @@
 @property (nonatomic, strong) NSString *headerText;
 
 @property (nonatomic, assign) NSInteger lastPanelIndex;
+
+@property (nonatomic, assign) IBOutlet UIView *view;
+
+//Header properties
+@property (nonatomic, weak) IBOutlet UILabel *headerLabel;
+@property (nonatomic, weak) IBOutlet UIImageView *headerImageView;
+@property (nonatomic, weak) IBOutlet UIView *headerView;
 
 @end
 
@@ -82,6 +88,10 @@
         // Initialization code
         _headerImage = headerImage;
         _headerText = headerText;
+        
+        [[NSBundle mainBundle] loadNibNamed:@"VIIntroductionView" owner:self options:nil];
+        [self addSubview:self.view];
+        
         [self sharedInitialize:panels forFrame:frame];
     }
     
@@ -91,22 +101,31 @@
 
 - (void)sharedInitialize:(NSArray*)panels forFrame:(CGRect)frame
 {
+    
+    DEFAULT_BACKGROUND_COLOR = [UIColor colorWithWhite:0 alpha:0.9];
+    
+    HEADER_FONT = [UIFont fontWithName:@"HelveticaNeue-Light" size:25.0];
+    HEADER_TEXT_COLOR = [UIColor whiteColor];
+    
+    DESCRIPTION_FONT = [UIFont fontWithName:@"HelveticaNeue-Light" size:14.0];
+    DESCRIPTION_TEXT_COLOR = [UIColor whiteColor];
+    
     _skipAvailable = TRUE;
     _swipeToEndAvailable = TRUE;
     _notifyCompletionBeforeFadeout = TRUE;
     _animateContentAlpha = TRUE;
-    _imagesWantFullscreen = FALSE;
+    _scrollWantsFullscreen = FALSE;
     
     _panelViews = [@[] mutableCopy];
     _panels = [panels copy];
     
-    [self buildUIWithFrame:frame];
 }
 
 - (void)willMoveToSuperview:(UIView *)newSuperview
 {
-    //[self buildUIWithFrame:self.frame];
+    [self buildUIWithFrame:self.frame];
 }
+
 
 #pragma mark - UI Builder Methods
 
@@ -129,52 +148,37 @@
     self.backgroundImageView.backgroundColor = [UIColor clearColor];
     self.backgroundImageView.contentMode = UIViewContentModeScaleToFill;
     self.backgroundImageView.autoresizesSubviews = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-    [self addSubview:self.backgroundImageView];
+    [self insertSubview:self.backgroundImageView atIndex:0];
 }
 
 - (void)buildHeaderViewWithFrame:(CGRect)frame
-{
-    self.headerView = [[UIView alloc] initWithFrame:CGRectMake(5, 5, frame.size.width - 10, HEADER_VIEW_HEIGHT)];
+{    
     self.headerView.autoresizingMask = UIViewAutoresizingFlexibleBottomMargin;
     self.headerView.backgroundColor = [UIColor clearColor];
     
     //Setup HeaderImageView
     if (self.headerImage) {
-        self.headerImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0,
-                                                                             self.headerView.frame.size.width,
-                                                                             self.headerView.frame.size.height)];
-        
-        self.headerImageView.backgroundColor = [UIColor clearColor];
         self.headerImageView.contentMode = UIViewContentModeScaleAspectFit;
         self.headerImageView.image = self.headerImage;
-        [self.headerView addSubview:self.headerImageView];
 
     } else if (self.headerText) {
         
         //Setup HeaderLabel
-        self.headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0,
-                                                                     self.headerView.frame.size.width,
-                                                                     self.headerView.frame.size.height)];
         self.headerLabel.font = HEADER_FONT;
         self.headerLabel.textColor = HEADER_TEXT_COLOR;
-        self.headerLabel.backgroundColor = [UIColor clearColor];
         self.headerLabel.textAlignment = NSTextAlignmentCenter;
         self.headerLabel.text = self.headerText;
-        [self.headerView addSubview:self.headerLabel];
     }
     
-    [self addSubview:self.headerView];
 }
 
 - (void)buildContentScrollViewWithFrame:(CGRect)frame
 {
-    self.contentScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0,
-                                                                            self.headerView.frame.origin.y + self.headerView.frame.size.height + 10,
-                                                                            frame.size.width, 0)];
     self.contentScrollView.pagingEnabled = YES;
     self.contentScrollView.showsHorizontalScrollIndicator = NO;
     self.contentScrollView.showsVerticalScrollIndicator = NO;
     self.contentScrollView.delegate = self;
+    self.contentScrollView.clipsToBounds = YES;
     
     //If panels exist, build views for them and add them to the ContentScrollView
     if (self.panels) {
@@ -185,7 +189,7 @@
             for (int ii = 0; ii < self.panels.count; ii++) {
                 
                 //Create a new view for the panel and add it to the array
-                [self.panelViews addObject:[self panelViewForPanel:self.panels[ii] atXIndex:&contentXIndex]];
+                [self.panelViews addObject:[self.panels[ii] viewForPanel:self atXIndex:&contentXIndex]];
                 
                 //Add the newly created panel view to ContentScrollView
                 [self.contentScrollView addSubview:self.panelViews[ii]];
@@ -204,101 +208,8 @@
             self.contentScrollView.contentSize = CGSizeMake(contentXIndex, self.contentScrollView.frame.size.height);
             
             //Add the ContentScrollView to the introduction view
-            [self addSubview:self.contentScrollView];
         }
     }
-}
-
-- (UIView *)panelViewForPanel:(VIIntroductionPanel *)panel atXIndex:(CGFloat*)xIndex
-{
-    
-    //Build panel now that we have all the desired dimensions
-    UIView *panelView = [[UIView alloc] initWithFrame:CGRectMake(*xIndex, 0, self.contentScrollView.frame.size.width, 0)];
-    
-    CGFloat maxScrollViewHeight = self.frame.size.height - self.contentScrollView.frame.origin.y - (36+PAGE_CONTROL_PADDING);
-    
-    CGFloat imageHeight = MIN(panel.image.size.height, self.frame.size.height);
-    
-
-    
-    UIImageView *panelImageView = [[UIImageView alloc] initWithImage:panel.image];
-    if (self.imagesWantFullscreen) {
-        panelImageView.frame = CGRectMake(0, 0,
-                                          self.contentScrollView.frame.size.width,
-                                          self.contentScrollView.frame.size.height);
-        panelView.frame = CGRectMake(*xIndex, 0,
-                                     self.contentScrollView.frame.size.width,
-                                     self.contentScrollView.frame.size.height);
-    }else{
-        panelImageView.frame = CGRectMake(5, 0, self.contentScrollView.frame.size.width - 10, imageHeight);
-    }
-
-    panelImageView.contentMode = UIViewContentModeScaleAspectFill;
-    panelImageView.backgroundColor = [UIColor clearColor];
-    panelImageView.image = panel.image;
-    panelImageView.layer.cornerRadius = 3;
-    panelImageView.clipsToBounds = YES;
-    
-    [panelView addSubview:panelImageView];
-    
-    CGFloat contentWrappedScrollViewHeight = imageHeight;
-    UITextView *panelTextView = nil;
-    
-    if(panel.descriptionText != nil && panel.descriptionText.length > 0){
-        //Build text container;
-        panelTextView = [[UITextView alloc] initWithFrame:CGRectMake(0, 0,
-                                                                     self.contentScrollView.frame.size.width, 10)];
-        
-        panelTextView.scrollEnabled = NO;
-        panelTextView.backgroundColor = [UIColor clearColor];
-        panelTextView.textAlignment = panel.textAlignment;
-        
-        if (panel.font) {
-            panelTextView.font = panel.font;
-        }else{
-            panelTextView.font = DESCRIPTION_FONT;
-        }
-        
-        if (panel.textColor) {
-            panelTextView.textColor = panel.textColor;
-        }else{
-            panelTextView.textColor = DESCRIPTION_TEXT_COLOR;
-        }
-        
-        panelTextView.text = panel.descriptionText;
-        
-        panelTextView.editable = NO;
-        [panelView addSubview:panelTextView];
-        
-        //Correct layout parameters
-        NSInteger textHeight = panelTextView.contentSize.height;
-        if ((imageHeight+textHeight) > maxScrollViewHeight) {
-            contentWrappedScrollViewHeight = maxScrollViewHeight;
-            imageHeight = contentWrappedScrollViewHeight-textHeight - 10;
-        } else if ((imageHeight+textHeight) <= maxScrollViewHeight){
-            contentWrappedScrollViewHeight = imageHeight + textHeight;
-        }
-        
-        panelTextView.frame = CGRectMake(0, imageHeight + 5,
-                                         self.contentScrollView.frame.size.width,
-                                         textHeight);
-    }
-    
-    if (!self.imagesWantFullscreen) {
-        panelView.frame = CGRectMake(*xIndex, 0,
-                                     self.contentScrollView.frame.size.width,
-                                     contentWrappedScrollViewHeight);
-    }
-    
-    panelTextView.autoresizingMask = UIViewAutoresizingNone;
-    
-    if (panelTextView != nil && CGPointEqualToPoint(panel.textCenter, CGPointZero) == NO) {
-        panelTextView.center = panel.textCenter;
-    }
-    
-    *xIndex += self.contentScrollView.frame.size.width;
-    
-    return panelView;
 }
 
 - (void)appendCloseViewAtXIndex:(CGFloat*)xIndex
@@ -312,24 +223,9 @@
 
 - (void)buildFooterView
 {
-    self.pageControl = [[UIPageControl alloc] initWithFrame:
-                        CGRectMake((self.frame.size.width - 185)/2,
-                                   (self.contentScrollView.frame.origin.y + self.contentScrollView.frame.size.height + PAGE_CONTROL_PADDING),
-                                   185, 36)];
-    
     self.pageControl.numberOfPages = _panels.count;
-    [self.pageControl addTarget:self action:@selector(pageChanged:) forControlEvents:UIControlEventValueChanged];
-    
-    [self addSubview:self.pageControl];
-    
-    self.endIntroButton = [[UIButton alloc] initWithFrame:CGRectMake(self.frame.size.width - 80,
-                                                                     self.pageControl.frame.origin.y,
-                                                                     80,
-                                                                     self.pageControl.frame.size.height)];
-    
     [self.endIntroButton setTitle:SKIP_INTRO_BUTTON_TEXT forState:UIControlStateNormal];
-    [self.endIntroButton addTarget:self action:@selector(skipIntroduction) forControlEvents:UIControlEventTouchUpInside];
-    [self addSubview:self.endIntroButton];
+
     
     if (self.skipAvailable) {
         [self.endIntroButton setAlpha:1];
@@ -342,7 +238,7 @@
 {
     CGFloat newPanelHeight = [_panelViews[panelIndex] frame].size.height;
     
-    if (self.imagesWantFullscreen) {
+    if (self.scrollWantsFullscreen) {
         newPanelHeight = self.frame.size.height;
     }
     
@@ -353,17 +249,9 @@
                                                   newPanelHeight);
         
         [UIView animateWithDuration:0.3 animations:^{
-            if (!self.imagesWantFullscreen) {
-                self.pageControl.frame = CGRectMake(self.pageControl.frame.origin.x,
-                                                    (self.contentScrollView.frame.origin.y + self.contentScrollView.frame.size.height + PAGE_CONTROL_PADDING),
-                                                    self.pageControl.frame.size.width,
-                                                    self.pageControl.frame.size.height);
-                
-                self.endIntroButton.frame = CGRectMake(self.endIntroButton.frame.origin.x,
-                                                       (self.contentScrollView.frame.origin.y + self.contentScrollView.frame.size.height + PAGE_CONTROL_PADDING),
-                                                       self.endIntroButton.frame.size.width,
-                                                       self.endIntroButton.frame.size.height);
-            }
+           
+            self.pageControl.frame = [_panels[panelIndex] frameForPageControl:self];
+            self.endIntroButton.frame = [_panels[panelIndex] frameForDoneButton:self];
             
             [self juggleSkipButton:panelIndex];
         }];
@@ -372,17 +260,10 @@
                                                   self.contentScrollView.frame.origin.y,
                                                   self.contentScrollView.frame.size.width,
                                                   newPanelHeight);
-        if (!self.imagesWantFullscreen) {
-            self.pageControl.frame = CGRectMake(self.pageControl.frame.origin.x,
-                                                (self.contentScrollView.frame.origin.y + self.contentScrollView.frame.size.height + PAGE_CONTROL_PADDING),
-                                                self.pageControl.frame.size.width,
-                                                self.pageControl.frame.size.height);
-            
-            self.endIntroButton.frame = CGRectMake(self.endIntroButton.frame.origin.x,
-                                                   (self.contentScrollView.frame.origin.y + self.contentScrollView.frame.size.height + PAGE_CONTROL_PADDING),
-                                                   self.endIntroButton.frame.size.width,
-                                                   self.endIntroButton.frame.size.height);
-        }
+
+        self.pageControl.frame = [_panels[panelIndex] frameForPageControl:self];
+        self.endIntroButton.frame = [_panels[panelIndex] frameForDoneButton:self];
+
         
         [self juggleSkipButton:panelIndex];
     }
@@ -420,6 +301,7 @@
 - (void)showInView:(UIView *)view{
     //Add introduction view
     self.alpha = 0;
+    
     [view addSubview:self];
     
     //Fade in
@@ -486,7 +368,7 @@
     }
 }
 
-- (void)skipIntroduction
+- (IBAction)skipIntroduction:(id)sender
 {
     if (self.notifyCompletionBeforeFadeout) {
         
@@ -583,13 +465,15 @@
     }
 }
 
-- (void)pageChanged:(UIPageControl*)control
+- (IBAction)pageChanged:(UIPageControl*)control
 {
     NSLog(@"Page Changed %d", control.currentPage);
     [self.contentScrollView setContentOffset:CGPointMake((self.contentScrollView.frame.size.width*control.currentPage), 0)
                                     animated:YES];
 
 }
+
+#pragma mark Getters
 
 
 #pragma mark Setters
@@ -615,11 +499,11 @@
     [self juggleSkipButton:self.currentPanelIndex];
 }
 
-- (void)setImagesWantFullscreen:(BOOL)imagesWantFullscreen
+- (void)setScrollWantsFullscreen:(BOOL)scrollWantsFullscreen
 {
     
-    _imagesWantFullscreen = imagesWantFullscreen;
-    if (imagesWantFullscreen) {
+    _scrollWantsFullscreen = scrollWantsFullscreen;
+    if (scrollWantsFullscreen) {
         [self.contentScrollView setFrame:CGRectMake(0, 0,
                                                     self.frame.size.width,
                                                     self.frame.size.height)];
@@ -628,6 +512,10 @@
 
 - (void)setBackgroundImage:(UIImage *)backgroundImage
 {
+    if (self.backgroundImageView == nil) {
+        [self buildBackgroundImage];
+    }
+    
     self.backgroundImageView.image = backgroundImage;
 }
 
@@ -689,8 +577,7 @@
 - (void)cleanPanelData
 {
     for (VIIntroductionPanel *panel in self.panels) {
-        panel.image = nil;
-        panel.descriptionText = nil;
+        [panel cleanForDealloc];
     }
     
     self.panels = nil;
@@ -718,7 +605,6 @@
     
     [self.pageControl removeFromSuperview];
     self.pageControl = nil;
-    
 }
 
 - (void)dealloc

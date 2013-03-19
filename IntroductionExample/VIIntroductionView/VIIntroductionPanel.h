@@ -27,21 +27,49 @@
 
 #import <Foundation/Foundation.h>
 
+@class VIIntroductionView;
+
 @interface VIIntroductionPanel : NSObject
 
 //Image
 @property (nonatomic, strong) UIImage *image;
+@property (nonatomic, assign) CGFloat imageHeight;
+
+//Setting this to TRUE will force images to take up the full screen of the panel
+//If you set this to TRUE, the UIPageControl and endIntroButton will not be moved or resized, and will be pinned to the bottom of the screen, or where ever you choose to set them after initialization.
+//If a description is set for panels, it will obey textCenter property set on each panel.
+//Defaults to FALSE
+@property (nonatomic, assign) BOOL imageWantsFullscreen;
+
 //Description
 @property (nonatomic, strong) NSString *descriptionText;
 @property (nonatomic, strong) UIFont *font;
 @property (nonatomic, strong) UIColor *textColor;
-
 @property (nonatomic, assign) NSTextAlignment textAlignment;
+
 //Display point for text (If not set, will default to just below Image with padding)
 @property (nonatomic, assign) CGPoint textCenter;
 
+
 - (id)initWithImage:(UIImage *)image;
-- (id)initWithImage:(UIImage *)image description:(NSString *)description;
-- (id)initWithImage:(UIImage *)image description:(NSString *)description andTextCenter:(CGPoint)textCenter;
-- (id)initWithImage:(UIImage *)image description:(NSString *)description textCenter:(CGPoint)textCenter andFont:(UIFont*)font;
+- (id)initWithImage:(UIImage *)image
+        description:(NSString *)description;
+
+- (id)initWithImage:(UIImage *)image
+        description:(NSString *)description
+      andTextCenter:(CGPoint)textCenter;
+
+- (id)initWithImage:(UIImage *)image
+        description:(NSString *)description
+         textCenter:(CGPoint)textCenter
+            andFont:(UIFont*)font;
+
+- (UIView *)viewForPanel:(VIIntroductionView *)view atXIndex:(CGFloat*)xIndex;
+
+- (CGRect)frameForPageControl:(VIIntroductionView *)view;
+- (CGRect)frameForDoneButton:(VIIntroductionView *)view;
+
+- (void)cleanForDealloc;
+
+
 @end

@@ -28,7 +28,7 @@
 //
 
 #import "VIViewController.h"
-
+#import "VIIntroductionPanel.h"
 
 @interface VIViewController ()
 
@@ -63,11 +63,17 @@
                                               andTextCenter:self.view.center];
     }
     
+    [panel3 setImageWantsFullscreen:YES];
+    
     [panel3 setFont:[UIFont boldSystemFontOfSize:30]];
     [panel3 setTextColor:[UIColor blackColor]];
     
-    VIIntroductionView *introductionView = [[VIIntroductionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)
-                                                                          headerText:@"VIIntroductionView" panels:@[panel, panel2, panel3]];
+    VIIntroductionView *introductionView = [[VIIntroductionView alloc] initWithFrame:CGRectMake(0, 0,
+                                                                                                self.view.frame.size.width,
+                                                                                                self.view.frame.size.height)
+                                                                          headerText:@"VIIntroductionView"
+                                                                              panels:@[panel, panel2, panel3]];
+    
     [introductionView setBackgroundImage:[UIImage imageNamed:@"SampleBackground"]];
     
     
@@ -77,9 +83,9 @@
     //introductionView.delegate = self;
     introductionView.skipAvailable = NO;
     introductionView.swipeToEndAvailable = NO;
-    introductionView.imagesWantFullscreen = YES;
+    introductionView.scrollWantsFullscreen = YES;
     introductionView.notifyCompletionBeforeFadeout = NO;
-    introductionView.animateContentAlpha = NO;
+    //introductionView.animateContentAlpha = NO;
     
     [introductionView showInView:self.view withCompletion:^(FinishType finishType) {
         if (finishType == FinishTypeSkipButton) {
@@ -90,7 +96,7 @@
         
         [introductionView removeFromSuperview];
     } andPanelChange:^(VIIntroductionPanel *panel, NSInteger index) {
-            NSLog(@"%@ \nPanelIndex: %d", panel.description, index);
+            NSLog(@"%@ \nPanelIndex: %d", panel.descriptionText, index);
     }];
 }
 
@@ -112,7 +118,7 @@
 }
 
 - (void)introductionDidChangeToPanel:(VIIntroductionPanel *)panel withIndex:(NSInteger)panelIndex{
-    NSLog(@"%@ \nPanelIndex: %d", panel.description, panelIndex);
+    NSLog(@"%@ \nPanelIndex: %d", panel.descriptionText, panelIndex);
 }
 
 @end
