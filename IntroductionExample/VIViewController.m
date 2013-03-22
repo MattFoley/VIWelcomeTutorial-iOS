@@ -85,7 +85,7 @@
     introductionView.swipeToEndAvailable = NO;
     introductionView.scrollWantsFullscreen = YES;
     introductionView.notifyCompletionBeforeFadeout = NO;
-    //introductionView.animateContentAlpha = NO;
+    introductionView.animateContentAlpha = YES;
     
     [introductionView showInView:self.view withCompletion:^(FinishType finishType) {
         if (finishType == FinishTypeSkipButton) {

@@ -33,7 +33,6 @@
 
 NSInteger const HEADER_VIEW_HEIGHT      = 50;
 NSInteger const PAGE_CONTROL_PADDING    =  2;
-NSString *const SKIP_INTRO_BUTTON_TEXT  = @"End";
 
 UIColor * DEFAULT_BACKGROUND_COLOR      = nil;
 UIColor * DESCRIPTION_TEXT_COLOR        = nil;
@@ -58,7 +57,6 @@ UIFont * HEADER_FONT                    = nil;
 @property (nonatomic, assign) IBOutlet UIView *view;
 
 //Header properties
-@property (nonatomic, weak) IBOutlet UILabel *headerLabel;
 @property (nonatomic, weak) IBOutlet UIImageView *headerImageView;
 @property (nonatomic, weak) IBOutlet UIView *headerView;
 
@@ -123,6 +121,7 @@ UIFont * HEADER_FONT                    = nil;
 
 - (void)willMoveToSuperview:(UIView *)newSuperview
 {
+    self.frame = [UIScreen mainScreen].bounds;
     [self buildUIWithFrame:self.frame];
 }
 
@@ -140,6 +139,11 @@ UIFont * HEADER_FONT                    = nil;
     [self buildFooterView];
     
     [self buildHeaderViewWithFrame:frame];
+    
+    if ([self.pageControl respondsToSelector:@selector(pageIndicatorTintColor)]) {
+        self.pageControl.pageIndicatorTintColor = UIColorFromRGB(0xBFBFBF);
+        self.pageControl.currentPageIndicatorTintColor = UIColorFromRGB(0xFFFFFF);
+    }
 }
 
 - (void)buildBackgroundImage
@@ -205,7 +209,7 @@ UIFont * HEADER_FONT                    = nil;
             [self appendCloseViewAtXIndex:&contentXIndex];
             
             //Finally, resize the content size of the scrollview to account for all the new views added to it
-            self.contentScrollView.contentSize = CGSizeMake(contentXIndex, self.contentScrollView.frame.size.height);
+            [self setSwipeToEndAvailable:self.swipeToEndAvailable];
             
             //Add the ContentScrollView to the introduction view
         }
@@ -224,8 +228,6 @@ UIFont * HEADER_FONT                    = nil;
 - (void)buildFooterView
 {
     self.pageControl.numberOfPages = _panels.count;
-    [self.endIntroButton setTitle:SKIP_INTRO_BUTTON_TEXT forState:UIControlStateNormal];
-
     
     if (self.skipAvailable) {
         [self.endIntroButton setAlpha:1];
@@ -237,38 +239,38 @@ UIFont * HEADER_FONT                    = nil;
 - (void)setContentScrollViewHeightForPanelIndex:(NSInteger)panelIndex animated:(BOOL)animated
 {
     CGFloat newPanelHeight = [_panelViews[panelIndex] frame].size.height;
-    
+
     if (self.scrollWantsFullscreen) {
         newPanelHeight = self.frame.size.height;
     }
     
+    self.contentScrollView.frame = CGRectMake(self.contentScrollView.frame.origin.x,
+                                              self.contentScrollView.frame.origin.y,
+                                              self.contentScrollView.frame.size.width,
+                                              newPanelHeight);
+    
     if (animated){
-        self.contentScrollView.frame = CGRectMake(self.contentScrollView.frame.origin.x,
-                                                  self.contentScrollView.frame.origin.y,
-                                                  self.contentScrollView.frame.size.width,
-                                                  newPanelHeight);
-        
         [UIView animateWithDuration:0.3 animations:^{
-           
-            self.pageControl.frame = [_panels[panelIndex] frameForPageControl:self];
-            self.endIntroButton.frame = [_panels[panelIndex] frameForDoneButton:self];
-            
+            [self layoutFrame:panelIndex];
             [self juggleSkipButton:panelIndex];
         }];
     } else {
-        self.contentScrollView.frame = CGRectMake(self.contentScrollView.frame.origin.x,
-                                                  self.contentScrollView.frame.origin.y,
-                                                  self.contentScrollView.frame.size.width,
-                                                  newPanelHeight);
-
-        self.pageControl.frame = [_panels[panelIndex] frameForPageControl:self];
-        self.endIntroButton.frame = [_panels[panelIndex] frameForDoneButton:self];
-
-        
+        [self layoutFrame:panelIndex];
         [self juggleSkipButton:panelIndex];
     }
     
     self.contentScrollView.contentSize = CGSizeMake(self.contentScrollView.contentSize.width, newPanelHeight);
+}
+
+- (void)layoutFrame:(NSInteger)panelIndex
+{
+    if ([self.panels[panelIndex] respondsToSelector:@selector(frameForPageControl:)]) {
+        self.pageControl.frame = [self.panels[panelIndex] frameForPageControl:self];
+    }
+    
+    if ([self.panels[panelIndex] respondsToSelector:@selector(frameForDoneButton:)]) {
+        self.endIntroButton.frame = [self.panels[panelIndex] frameForDoneButton:self];
+    }
 }
 
 - (void)juggleSkipButton:(NSInteger)panelIndex
@@ -467,6 +469,7 @@ UIFont * HEADER_FONT                    = nil;
 
 - (IBAction)pageChanged:(UIPageControl*)control
 {
+    [self.view bringSubviewToFront:self.endIntroButton];
     NSLog(@"Page Changed %d", control.currentPage);
     [self.contentScrollView setContentOffset:CGPointMake((self.contentScrollView.frame.size.width*control.currentPage), 0)
                                     animated:YES];
@@ -482,8 +485,11 @@ UIFont * HEADER_FONT                    = nil;
 {
     _swipeToEndAvailable = swipeToEndAvailable;
     
-    CGFloat sizeWithSwipeToEnd = self.contentScrollView.frame.size.width * (self.panelViews.count+1);
-    CGFloat sizeWithOutSwipeToEnd = self.contentScrollView.frame.size.width * (self.panelViews.count);
+    CGFloat sizeWithSwipeToEnd = self.contentScrollView.frame.size.width * (self.panels.count+1);
+    CGFloat sizeWithOutSwipeToEnd = self.contentScrollView.frame.size.width * (self.panels.count);
+    
+    NSLog(@"with %f without %f", sizeWithSwipeToEnd, sizeWithOutSwipeToEnd);
+    
     if (self.swipeToEndAvailable) {
         [self.contentScrollView setContentSize:CGSizeMake(sizeWithSwipeToEnd,
                                                           self.contentScrollView.contentSize.height)];

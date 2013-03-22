@@ -70,6 +70,7 @@
 - (CGRect)frameForDoneButton:(VIIntroductionView *)view;
 
 - (void)cleanForDealloc;
+- (void)sharedInit;
 
 
 @end

@@ -85,6 +85,8 @@ typedef void(^PanelChangeBlock)(VIIntroductionPanel* panel, NSInteger index);
 @property (nonatomic, weak) IBOutlet UIPageControl *pageControl;
 @property (nonatomic, weak) IBOutlet UIButton *endIntroButton;
 
+@property (nonatomic, weak) IBOutlet UILabel *headerLabel;
+
 //Customization Settings
 
 //Setting this to FALSE will fade in the End Tutorial Button as the Last Panel slides in.
