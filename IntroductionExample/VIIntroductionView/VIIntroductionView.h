@@ -125,7 +125,7 @@ typedef void(^PanelChangeBlock)(VIIntroductionPanel* panel, NSInteger index);
 - (void)setHeaderImage:(UIImage *)headerImage;
 
 //Introduction Content
-- (void)setBackgroundImage:(UIImage *)backgroundImage;
+- (void)setBackgroundImageName:(NSString *)string;
 
 //Show/Hide
 

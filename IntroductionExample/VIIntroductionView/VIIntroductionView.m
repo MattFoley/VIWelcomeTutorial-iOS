@@ -52,6 +52,8 @@ UIFont * HEADER_FONT                    = nil;
 @property (nonatomic, strong) UIImage *headerImage;
 @property (nonatomic, strong) NSString *headerText;
 
+@property (nonatomic, strong) NSString *bgImageName;
+
 @property (nonatomic, assign) NSInteger lastPanelIndex;
 
 @property (nonatomic, assign) IBOutlet UIView *view;
@@ -121,8 +123,10 @@ UIFont * HEADER_FONT                    = nil;
 
 - (void)willMoveToSuperview:(UIView *)newSuperview
 {
-    self.frame = [UIScreen mainScreen].bounds;
-    [self buildUIWithFrame:self.frame];
+    if (newSuperview != nil) {
+        self.frame = [UIScreen mainScreen].bounds;
+        [self buildUIWithFrame:self.frame];
+    }
 }
 
 
@@ -133,7 +137,9 @@ UIFont * HEADER_FONT                    = nil;
 {
     self.backgroundColor = DEFAULT_BACKGROUND_COLOR;
 
-    [self buildBackgroundImage];
+    if (!self.backgroundImageView) {
+        [self buildBackgroundImage];
+    }
     
     [self buildContentScrollViewWithFrame:frame];
     [self buildFooterView];
@@ -152,7 +158,7 @@ UIFont * HEADER_FONT                    = nil;
     self.backgroundImageView.backgroundColor = [UIColor clearColor];
     self.backgroundImageView.contentMode = UIViewContentModeScaleToFill;
     self.backgroundImageView.autoresizesSubviews = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-    [self insertSubview:self.backgroundImageView atIndex:0];
+    [self.view insertSubview:self.backgroundImageView atIndex:0];
 }
 
 - (void)buildHeaderViewWithFrame:(CGRect)frame
@@ -516,13 +522,14 @@ UIFont * HEADER_FONT                    = nil;
     }
 }
 
-- (void)setBackgroundImage:(UIImage *)backgroundImage
+- (void)setBackgroundImageName:(NSString *)string
 {
     if (self.backgroundImageView == nil) {
         [self buildBackgroundImage];
     }
     
-    self.backgroundImageView.image = backgroundImage;
+    [self.backgroundImageView setImage:[UIImage imageNamed:string]];
+    self.bgImageName = string;
 }
 
 - (void)setAnimateContentAlpha:(BOOL)animateContentAlpha
